@@ -7,5 +7,5 @@ class BusFrequency(val morning: Int,
                    val night: Int)(implicit ctx: BusContext) extends Individual[Int] {
   def string: List[Int] = List(morning, afternoon, night)
 
-  def fitness: Double = ctx.simulate(this).total
+  def fitness: Double = ctx.simulate(this).fitness
 }
