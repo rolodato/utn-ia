@@ -13,13 +13,11 @@ object BusApp extends JSApp {
     implicit val busContext = new BusContext {
       val seatsPerBus: Int = 30
       val standingPerBus: Int = 15
-      val afternoonFreq: Int = 20
       val busCount: Int = 5
       val roundTripMins: Int = 15
       val roundTripCost: Int = 5
       def departCondition(paxWaiting: Int): Boolean = paxWaiting > 0
     }
-
     val populationSize: Int = 500
     val mutationProbability: Double = 0.1
     val selection: Selection = RouletteSelection()
