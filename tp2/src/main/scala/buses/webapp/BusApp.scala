@@ -1,37 +1,49 @@
 package buses.webapp
 
 import buses.{BusContext, BusFrequency}
-import rolodato.genetics.impl.{IntegerMutation, OnePointCrossover,
-RouletteSelection}
+import org.scalajs.dom.{Event, document}
+import org.scalajs.dom.raw.HTMLInputElement
 import rolodato.genetics._
+import rolodato.genetics.impl.{IntegerMutation, OnePointCrossover, RouletteSelection}
 
+import scala.language.postfixOps
 import scala.scalajs.js.JSApp
 import scala.util.Random
 
 object BusApp extends JSApp {
-  object TestGenetic extends Genetic {
-    implicit val busContext = new BusContext {
-      val seatsPerBus: Int = 30
-      val standingPerBus: Int = 15
-      val busCount: Int = 5
-      val roundTripMins: Int = 15
-      val roundTripCost: Int = 5
-      def departCondition(paxWaiting: Int): Boolean = paxWaiting > 0
-    }
-    val populationSize: Int = 500
-    val mutationProbability: Double = 0.1
-    val selection: Selection = RouletteSelection()
-    val crossover: Crossover = OnePointCrossover()
-    val mutation: Mutation = IntegerMutation()
-    val selectionPercentage: Double = 0.2
-    val rng: Random = Random
-    def randomGene(): Gene = {
-      def rand(prop: Double) = (rng.nextInt(300) * prop).toInt
-      new BusFrequency(rand(1.2), rand(1.0), rand(0.9))
-    }
-  }
   def main(): Unit = {
-    println(TestGenetic.run(1))
-    println("Hello world!")
+    val form = document.getElementById("form")
+    form.addEventListener("submit", (e: Event) => {
+      e.preventDefault()
+      val names = List("populationSize", "mutationProbability",
+        "selectionPercentage", "iterationCount", "busCount", "seatsPerBus",
+        "standingPerBus", "roundTripMins", "roundTripCost")
+      val inputs = names.map(name => name -> document.getElementById(name).asInstanceOf[HTMLInputElement].valueAsNumber) toMap
+      val genetic = new Genetic {
+        implicit val busContext = new BusContext {
+          val seatsPerBus: Int = inputs("seatsPerBus")
+          val standingPerBus: Int = inputs("standingPerBus")
+          val busCount: Int = inputs("busCount")
+          val roundTripMins: Int = inputs("roundTripMins")
+          val roundTripCost: Int = inputs("roundTripCost")
+          def departCondition(paxWaiting: Int): Boolean = paxWaiting > 0
+        }
+        def randomGene(): Gene = {
+          def rand(prop: Double) = (rng.nextInt(300) * prop).toInt
+          new BusFrequency(rand(1.0), rand(0.8), rand(0.7))
+        }
+        val mutationProbability: Double = inputs("mutationProbability") / 100.0
+        val populationSize: Int = inputs("populationSize")
+        val selection: Selection = RouletteSelection()
+        val crossover: Crossover = OnePointCrossover()
+        val mutation: Mutation = IntegerMutation()
+        val selectionPercentage: Double = {
+          inputs("selectionPercentage") / 100.0
+        }
+        val rng: Random = Random
+      }
+      println(genetic.run(inputs("iterationCount")))
+    })
   }
+  println("Hello world!")
 }
