@@ -9,9 +9,7 @@ class SimulationResult(val totalCost: Int,
     this.maxWaiting + that.maxWaiting
   )
 
-  def total: Int = totalCost + standingPax + maxWaiting
-
   def totalPax: Int = standingPax + maxWaiting
 
-  def fitness: Double = 1 / this.total
+  def fitness: Double = 1 / (totalCost + standingPax + maxWaiting)
 }

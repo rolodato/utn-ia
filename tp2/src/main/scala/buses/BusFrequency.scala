@@ -7,7 +7,7 @@ class BusFrequency(val morning: Int,
                    val night: Int)(implicit ctx: BusContext) extends Gene {
   val string: List[Int] = List(morning, afternoon, night)
 
-  def fitness: Double = ctx.simulate(this).fitness
+  lazy val fitness: Double = ctx.simulate(this).fitness
 
   def copy(newString: List[Int]): Gene = BusFrequency(newString)
 }
