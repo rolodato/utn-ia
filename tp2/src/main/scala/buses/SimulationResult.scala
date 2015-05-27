@@ -11,5 +11,5 @@ class SimulationResult(val totalCost: Int,
 
   def totalPax: Int = standingPax + maxWaiting
 
-  def fitness: Double = 1 / (totalCost + standingPax + maxWaiting)
+  def fitness: Double = 100000 / (totalCost + standingPax + maxWaiting)
 }
