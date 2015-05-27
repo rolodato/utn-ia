@@ -1,0 +1,199 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[english,spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+
+\usepackage{color}
+\definecolor{kw}{rgb}{0,0.5,0}
+\definecolor{str}{rgb}{0.7,0,0.2}
+\definecolor{gray}{rgb}{0.0,0.4,0.8}
+\usepackage{listings}
+\lstdefinelanguage{scala}{
+  morekeywords={abstract,case,catch,class,def,%
+    do,else,extends,false,final,finally,%
+    for,if,implicit,import,match,mixin,%
+    new,null,object,override,package,%
+    private,protected,requires,return,sealed,%
+    super,this,throw,trait,true,try,%
+    type,val,var,while,with,yield},
+  otherkeywords={=>,<-,<\%,<:,>:,\#,@},
+  sensitive=true,
+  morecomment=[l]{//},
+  morecomment=[n]{/*}{*/},
+  morestring=[b]",
+  morestring=[b]',
+  morestring=[b]"""
+}
+\lstset{literate=
+	{á}{{\'a}}1
+	{Á}{{\'A}}1
+	{é}{{\'e}}1
+	{É}{{\'E}}1
+	{í}{{\'i}}1
+	{Í}{{\'Í}}1
+	{ó}{{\'o}}1
+	{Ó}{{\'O}}1
+	{ú}{{\'u}}1
+	{Ú}{{\'U}}1
+	{ü}{{\"u}}1
+	{~}{{\textasciitilde}}1
+	{ñ}{{\~n}}1
+	{Ñ}{{\~N}}1,
+	columns=fullflexible,
+	basicstyle=\ttfamily\footnotesize,
+	commentstyle=\color{gray},
+	keywordstyle=\bfseries\color{kw},
+	stringstyle=\color{str},
+	breaklines=true,
+	language=scala,
+	keepspaces=true,
+	frame=single
+}
+
+\usepackage{graphicx}
+\graphicspath{{./img/}}
+
+\usepackage{csquotes}
+\usepackage[
+	backend=bibtex,
+	bibencoding=ascii,
+	style=numeric,
+	sorting=none
+]{biblatex}
+\bibliography{ia-tp2}
+
+\title{Optimización de frecuencias de colectivos utilizando algoritmos genéticos}
+\author{Cristian García \and Tomás Gropper \and Federico López Cañas \and Rodrigo López Dato \and Uriel Petasny \and Matías Petrone}
+
+\begin{document}
+
+\maketitle
+\begin{abstract}
+Buscamos optimizar las frecuencias con las que deben partir colectivos urbanos para minimizar el costo total, la cantidad de pasajeros que viajan parados, y la cantidad máxima de pasajeros esperando a la vez.
+Para resolver este problema, implementamos un algoritmo genético utilizando una biblioteca propia en Scala, contemplando un modelo simplificado de la realidad.
+\end{abstract}
+
+
+\section{Introducción y modelización}
+
+El problema que buscamos resolver es el de optimizar con qué frecuencias deben partir colectivos urbanos para minimizar las siguientes tres variables:
+
+\begin{itemize}
+	\item Costo total
+	\item Cantidad de pasajeros que viajan parados
+	\item Máxima cantidad de pasajeros esperando a la vez
+\end{itemize}
+
+Se considera que todas las variables tienen el mismo peso a la hora de comparar posibles soluciones.
+
+Existen tres turnos: mañana, tarde y noche.
+En cada turno viajan distintas cantidades de pasajeros, que modelamos mediante la cantidad de pasajeros que llegan por hora a la parada.
+
+Para simplificar el modelo, tuvimos en cuenta varios supuestos.
+Existe una única parada y un único destino; todos los pasajeros suben y descienden en las mismas paradas.
+Cada colectivo tarda exactamente el mismo tiempo en realizar el recorrido.
+Todos los colectivos son idénticos en cuanto a capacidad, tanto para pasajeros sentados como parados.
+El costo de cada viaje es fijo, y no se consideran los ingresos por los boletos de los pasajeros.
+Cada turno empieza "desde cero", es decir, al principio de cada turno se considera que todos los colectivos están listos para salir desde la parada.
+Por último, consideramos que la frecuencia con la que llegan pasajeros es exacta, es decir, cada hora llega exactamente la cantidad especificada de pasajeros a la parada.
+
+A partir de estos supuestos, definimos las siguientes variables de contexto:
+
+\begin{itemize}
+	\item Cantidad de colectivos
+	\item Cantidad de asientos por colectivo
+	\item Capacidad para pasajeros parados
+	\item Tiempo de recorrido en minutos
+	\item Costo de recorrido
+\end{itemize}
+
+\subsection{Implementación}
+
+Elegimos implementar todo el código en Scala por conocimientos previos, la expresividad del lenguaje y la funcionalidad disponible en la biblioteca standard.
+Scala también nos permite utilizar Scala.js\cite{scalajs} para facilitar la distribución de un ejecutable mediante una página web en lugar de un paquete instalable.
+
+Como oportunidad de aprendizaje, optamos por crear una biblioteca de algoritmos genéticos con los operadores utilizados en este trabajo llamada \texttt{genetics}\cite{genetics}.
+
+\section{Simulación}
+
+Dado un turno, la cantidad de pasajeros a transportar por hora y las variables del contexto, resulta poco práctico, quizás imposible, encontrar una función\footnote{Nuestra implementación particular es determinista por lo que podría considerarse una función, pero no existe una fórmula que permita calcular el resultado de una simulación sin realizar las iteraciones necesarias.} que devuelva los resultados deseados.
+Por este motivo, elegimos calcularlo mediante una simulación dinámica.
+
+La simulación se ejecuta para cada turno de manera independiente, recibiendo como entrada las variables de contexto y la frecuencia de pasajeros del turno actual.
+Devuelve como resultados las tres variables de interés: costo total, cantidad de pasajeros que viajan parados, y máxima cantidad de pasajeros esperando a la vez.
+
+El código de la simulación está en el método \texttt{simulateShift} del tipo \texttt{BusContext}, que define también las variables de contexto.
+
+\section{Algoritmo genético}
+
+A continuación describimos cada componente del algoritmo implementado en detalle.
+La implementación abstracta de un algoritmo genético, que es adaptable a otros operadores, se encuentra en la clase \texttt{Genetic}.
+
+\subsection{Operadores genéticos}
+
+\paragraph{Población inicial} Generación aleatoria de cromosomas de tamaño fijo, teniendo en cuenta valores máximos para cada frecuencia.
+Por ejemplo:
+
+\lstinputlisting{src/randomGene.scala}
+
+\paragraph{Selección} Por ruleta. Se aplica repetidamente el algoritmo hasta llegar a un porcentaje configurable de selección relativo al tamaño de la población inicial.
+Ver implementación en la clase \texttt{RouletteSelection}.
+
+\paragraph{Cruza} Simple.
+El punto de cruzamiento (\texttt{xop} por \textit{\foreignlanguage{english}{crossover point}}) se elige aleatoriamente en cada iteración del algoritmo.
+Se cruza el primer individuo con el segundo, el segundo con el tercero, y así sucesivamente hasta llegar al tamaño de la población inicial.
+Si se generan individuos redundantes, se eliminan.
+Ver implementación en la clase \texttt{OnePointCrossover}.
+
+\paragraph{Mutación} Simple, de probabilidad constante. Se permite configurar el porcentaje de mutación.
+Ver implementación en la clase \texttt{IntegerMutation}.
+
+\subsection{Función de aptitud}
+
+Como deseamos minimizar las tres variables resultantes de la simulación y las variables tienen el mismo peso, definimos la función de aptitud para esta terna de valores:
+
+\[ f(c, p, m) = \frac{1}{c + p + m} \]
+
+donde $c$, $p$ y $m$ son costo total, pasajeros parados y máxima cantidad de pasajeros esperando respectivamente.
+
+En nuestra implementación, los cromosomas son objetos de tipo \texttt{BusFrequency} que tienen un método \texttt{fitness}.
+Este método ejecuta la simulación para cada turno, reúne los resultados en un objeto de tipo \texttt{SimulationResult} y calcula la aptitud utilizando la fórmula anterior.
+El código relevante es el siguiente:
+
+\lstinputlisting{src/AptitudeFunction.scala}
+
+\section{Resultados}
+
+\subsection{Corrida 1}
+
+\subsubsection*{Parámetros aplicados}
+
+\subsubsection*{Mejor individuo}
+
+\subsubsection*{Evolución de aptitud}
+
+\subsection{Corrida 2}
+
+\subsubsection*{Parámetros aplicados}
+
+\subsubsection*{Mejor individuo}
+
+\subsubsection*{Evolución de aptitud}
+
+\subsection{Corrida 3}
+
+\subsubsection*{Parámetros aplicados}
+
+\subsubsection*{Mejor individuo}
+
+\subsubsection*{Evolución de aptitud}
+
+\section{Análisis de resultados}
+
+\section{Conclusiones}
+
+\printbibliography
+
+\end{document}
