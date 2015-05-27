@@ -1,17 +1,21 @@
 package buses.webapp
 
-import buses.{BusContext, BusFrequency}
+import buses.{SimulationResult, BusContext, BusFrequency}
 import org.scalajs.dom.{Event, document}
 import org.scalajs.dom.raw.HTMLInputElement
 import rolodato.genetics._
 import rolodato.genetics.impl.{IntegerMutation, OnePointCrossover, RouletteSelection}
 
 import scala.language.postfixOps
+import scala.scalajs.js
 import scala.scalajs.js.JSApp
 import scala.util.Random
+import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
 
 object BusApp extends JSApp {
   def main(): Unit = {
+    // If running in console, nothing to do
+    if (js.isUndefined(document)) return
     val form = document.getElementById("form")
     form.addEventListener("submit", (e: Event) => {
       e.preventDefault()
@@ -42,8 +46,13 @@ object BusApp extends JSApp {
         }
         val rng: Random = Random
       }
-      println(genetic.run(inputs("iterationCount")))
+      genetic.run(inputs("iterationCount")).onSuccess {
+        case result =>
+          val fit = result.fittest.string
+          document.getElementById("fittest").innerHTML = s"${fit(0)}, ${fit (1)}, ${fit(2)}"
+          document.getElementById("fitness").innerHTML = result.fittest.fitness.toString
+          document.getElementById("csv").innerHTML = result.fitnessEvolution.mkString(",")
+      }
     })
   }
-  println("Hello world!")
 }

@@ -10,6 +10,10 @@
     input, label {
       display: block;
     }
+    #results span {
+      font-weight: bold;
+      font-size: 150%
+    }
   </style>
 </head>
 <body>
@@ -70,6 +74,13 @@
     <input type="submit" value="Simular" />
   </p>
 </form>
+
+<div id="results" style="">
+  <p>Mejor resultado (mañana, tarde, noche): <span id="fittest"></span></p>
+  <p>Valor de aptitud: <span id="fitness"></span></p>
+  <p>Evolución de aptitud promedio (CSV):</p>
+  <textarea id="csv" rows="5" cols="50"></textarea>
+</div>
 
 <script src="target/scala-2.11/bus-frequency-opt.js"></script>
 <script>
