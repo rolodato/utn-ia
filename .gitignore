@@ -1,4 +1,5 @@
 *.pdf
+*.eps
 
 ## Core latex/pdflatex auxiliary files:
 *.aux

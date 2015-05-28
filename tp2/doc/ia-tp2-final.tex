@@ -1,9 +1,11 @@
 \documentclass[a4paper,12pt]{article}
+\usepackage[a4paper]{geometry}
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
 \usepackage[english,spanish]{babel}
 \usepackage[utf8]{inputenc}
 \usepackage{hyperref}
+\usepackage{multicol}
 
 \usepackage{color}
 \definecolor{dkgreen}{rgb}{0,0.6,0}
@@ -47,7 +49,7 @@
 	belowskip=3mm,
 	showstringspaces=false,
 	columns=flexible,
-	basicstyle={\small\ttfamily},
+	basicstyle={\footnotesize\ttfamily},
 	numbers=none,
 	numberstyle=\tiny\color{gray},
 	keywordstyle=\color{blue}\bfseries,
@@ -55,7 +57,8 @@
 	stringstyle=\color{mauve},
 	frame=single,
 	breaklines=true,
-	breakatwhitespace=true
+	breakatwhitespace=true,
+	keepspaces=true,
 	tabsize=3
 }
 
@@ -138,6 +141,11 @@ El código de la simulación está en el método \texttt{simulateShift} del tipo
 A continuación describimos cada componente del algoritmo implementado en detalle.
 La implementación abstracta de un algoritmo genético, que es adaptable a otros operadores, se encuentra en la clase \texttt{Genetic}.
 
+\subsection{Definición del cromosoma}
+
+Definimos un cromosoma a partir de tres genes, cada uno representando la demora en minutos antes de enviar un colectivo en cada turno.
+Por ejemplo, el cromosoma $(1,2,3)$ indica que cada colectivo en el turno noche realiza su viaje y espera tres minutos antes de llevar pasajeros nuevamente.
+
 \subsection{Operadores genéticos}
 
 \paragraph{Población inicial} Generación aleatoria de cromosomas de tamaño fijo, teniendo en cuenta valores máximos para cada frecuencia.
@@ -148,10 +156,10 @@ Por ejemplo:
 \paragraph{Selección} Por ruleta. Se aplica repetidamente el algoritmo hasta llegar a un porcentaje configurable de selección relativo al tamaño de la población inicial.
 Ver implementación en la clase \texttt{RouletteSelection}.
 
-\paragraph{Cruza} Simple.
-El punto de cruzamiento (\texttt{xop} por \textit{\foreignlanguage{english}{crossover point}}) se elige aleatoriamente en cada iteración del algoritmo.
-Se cruza el primer individuo con el segundo, el segundo con el tercero, y así sucesivamente hasta llegar al tamaño de la población inicial.
-Si se generan individuos redundantes, se eliminan.
+\paragraph{Cruzamiento} Simple.
+Como estamos utilizando cromosomas con únicamente tres valores, elegimos siempre el segundo elemento como punto de cruzamiento (\texttt{xop} por \textit{\foreignlanguage{english}{crossover point}}), lo que evita devolver individuos duplicados al cruzar.
+Se cruzan dos individuos al azar hasta llegar al tamaño de la población inicial.
+Si se generan más individuos que los necesarios, se eliminan.
 Ver implementación en la clase \texttt{OnePointCrossover}.
 
 \paragraph{Mutación} Simple, de probabilidad constante. Se permite configurar el porcentaje de mutación.
@@ -161,9 +169,10 @@ Ver implementación en la clase \texttt{IntegerMutation}.
 
 Como deseamos minimizar las tres variables resultantes de la simulación y las variables tienen el mismo peso, definimos la función de aptitud para esta terna de valores:
 
-\[ f(c, p, m) = \frac{1}{c + p + m} \]
+\[ f(c, p, m) = \frac{100000}{c + p + m} \]
 
 donde $c$, $p$ y $m$ son costo total, pasajeros parados y máxima cantidad de pasajeros esperando respectivamente.
+El numerador es 100000 para evitar errores de redondeo por usar números muy pequeños.
 
 En nuestra implementación, los cromosomas son objetos de tipo \texttt{BusFrequency} que tienen un método \texttt{fitness}.
 Este método ejecuta la simulación para cada turno, reúne los resultados en un objeto de tipo \texttt{SimulationResult} y calcula la aptitud utilizando la fórmula anterior.
@@ -173,33 +182,128 @@ El código relevante es el siguiente:
 
 \section{Resultados}
 
+En todos los casos, los parámetros de simulación utilizados fueron los siguientes:
+
+\begin{itemize}
+	\item Cantidad de colectivos: 10
+	\item Asientos por colectivo: 30
+	\item Capacidad para pasajeros parados: 15
+	\item Duración del viaje: 60 minutos
+	\item Costo del viaje: \$50
+	\item Pasajeros por hora en cada turno: 500, 300 y 200
+\end{itemize}
+
+La población inicial en cada caso se generó tomando intervalos entre arribos aleatorios entre 0 y 60 minutos.
+
+\newpage
+
+\newgeometry{left=3cm,right=3cm,top=1cm,bottom=2cm}
+
 \subsection{Corrida 1}
 
 \subsubsection*{Parámetros aplicados}
 
-\subsubsection*{Mejor individuo}
+\begin{multicols}{2}
+\begin{itemize}
+	\item Tamaño de población: 300
+	\item Probabilidad de mutación: 1\%
+	\item Porcentaje de selección: 80\%
+	\item Cantidad de iteraciones: 100
+\end{itemize}
+\end{multicols}
 
-\subsubsection*{Evolución de aptitud}
+\paragraph*{Mejor individuo}
+
+$(0, 12, 0)$ con valor de aptitud 242.
+
+\paragraph*{Mejor individuo en última población}
+
+$(0, 22, 4)$ con valor de aptitud 121.
+
+\subsubsection*{Evolución de aptitud media}
+
+\includegraphics{data/img/evolution-1}
+
+\subsubsection*{Histograma de población final}
+
+\includegraphics{data/img/fitness-1}
 
 \subsection{Corrida 2}
 
 \subsubsection*{Parámetros aplicados}
 
+\begin{multicols}{2}
+\begin{itemize}
+	\item Tamaño de población: 100
+	\item Probabilidad de mutación: 1\%
+	\item Porcentaje de selección: 80\%
+	\item Cantidad de iteraciones: 2000
+\end{itemize}
+\end{multicols}
+
 \subsubsection*{Mejor individuo}
 
-\subsubsection*{Evolución de aptitud}
+$(0, 0, 17)$ con valor de aptitud 239, en última población.
+
+\subsubsection*{Evolución de aptitud media}
+
+\includegraphics{data/img/evolution-2}
+
+\subsubsection*{Histograma de población final}
+
+\includegraphics{data/img/fitness-2}
 
 \subsection{Corrida 3}
 
 \subsubsection*{Parámetros aplicados}
 
-\subsubsection*{Mejor individuo}
+\begin{multicols}{2}
+\begin{itemize}
+	\item Tamaño de población: 100
+	\item Probabilidad de mutación: 90\%
+	\item Porcentaje de selección: 20\%
+	\item Cantidad de iteraciones: 2000
+\end{itemize}
+\end{multicols}
 
-\subsubsection*{Evolución de aptitud}
+\subsubsection*{Mejor resultado}
+
+$(0, 1, 0)$ con valor de aptitud 249, en última población.
+
+\subsubsection*{Evolución de aptitud media}
+
+\includegraphics{data/img/evolution-3}
+
+\subsubsection*{Histograma de población final}
+
+\includegraphics{data/img/fitness-3}
+
+\restoregeometry
 
 \section{Análisis de resultados}
 
+Podemos observar que las tres corridas obtuvieron resultados similares en cuanto al mejor individuo, sin embargo es interesante analizar los resultados enteros de cada corrida por separado.
+
+La corrida 1 utiliza una población grande pero con una cantidad baja de iteraciones.
+Llegó a un resultado alto por azar, pero la aptitud media final es la mas baja de todas las corridas.
+Esto se debe a que nuestro algoritmo requiere de más iteraciones para converger en un máximo.
+
+En cambio, la corrida 2 utiliza una población más pequeña con 20 veces más iteraciones. En este caso podemos observar claramente la convergencia de la aptitud media a un valor cercano a 230, no muy lejos del mejor individuo de toda la corrida.
+Sin embargo, viendo el histograma de la población, se ve que existen dos grupos claramente marcados de aptitudes.
+Analizando los datos completos pudimos observar que existen numerosos resultados duplicados en la población final, posiblemente debido a nuestra elección de método de cruzamiento.
+
+Finalmente, la última corrida también utiliza una población pequeña con 2000 iteraciones, pero utiliza un porcentaje de selección más restrictivo y una alta probabilidad de mutación.
+Esto se puede observar inmediatamente en el gráfico de evolución; no se nota una convergencia clara como en el caso de la segunda corrida.
+También se observan grupos aislados de aptitudes en el histograma, causados por la duplicación de cromosomas a lo largo de tantas iteraciones.
+
 \section{Conclusiones}
+
+Habiendo implementado todos los operadores, pudimos observar la complejidad que implica diseñar cada uno y la cantidad de decisiones que deben tomarse para llegar a un resultado satisfactorio.
+Concluimos que si tuviésemos que implementar un algoritmo genético para un problema real, no implementaríamos nuestra propia biblioteca.
+
+Para mejorar nuestro algoritmo, deberíamos optimizar la implementación para poder hacer corridas en tiempos razonables con cientos de miles de individuos e iteraciones.
+Para esto sería necesario eliminar los cromosomas duplicados.
+
 
 \printbibliography
 
