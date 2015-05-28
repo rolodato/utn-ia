@@ -28,17 +28,23 @@
     <p>
       <label for="mutationProbability">Probabilidad de mutación (%)</label>
       <input type="number" id="mutationProbability"
-             name="mutationProbability" min="0" max="100" step="1" value="10">
+             name="mutationProbability" min="0" max="100" step="1" value="1">
     </p>
     <p>
       <label for="selectionPercentage">Porcentaje de selección</label>
       <input type="number" id="selectionPercentage"
-             name="selectionPercentage" min="0" max="100" step="1" value="20">
+             name="selectionPercentage" min="0" max="100" step="1" value="80">
     </p>
     <p>
       <label for="iterationCount">Cantidad de iteraciones</label>
       <input type="number" id="iterationCount" name="iterationCount" min="1"
              step="1" value="10">
+    </p>
+    <p>
+      <label for="maxInterval">Intervalo máximo entre arribo de
+        colectivos (minutos)</label>
+      <input type="number" id="maxInterval" name="maxInterval" min="1"
+             step="1" value="30">
     </p>
   </fieldset>
 
@@ -47,7 +53,7 @@
     <p>
       <label for="busCount">Cantidad de colectivos</label>
       <input type="number" id="busCount" name="busCount" min="1" step="1"
-             value="5">
+             value="10">
     </p>
     <p>
       <label for="seatsPerBus">Asientos por colectivo</label>
@@ -69,6 +75,13 @@
       <input type="number" id="roundTripCost" name="roundTripCost" min="1"
              step="1" value="5">
     </p>
+    <p>Pasajeros por hora por turno</p>
+    <input type="number" id="paxMorning" name="paxMorning" min="1" step="1"
+           value="500" placeholder="Mañana">
+    <input type="number" id="paxAfternoon" name="paxAfternoon" min="1"
+           step="1" value="300" placeholder="Tarde">
+    <input type="number" id="paxNight" name="paxNight" min="1" step="1"
+           value="200" placeholder="Noche">
   </fieldset>
   <p>
     <input type="submit" value="Simular" />

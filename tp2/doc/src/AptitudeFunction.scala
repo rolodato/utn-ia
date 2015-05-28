@@ -7,7 +7,10 @@ class BusFrequency(val morning: Int,
 
 trait BusContext {
   def simulate(b: BusFrequency): SimulationResult = {
-    val results = Seq(b.morning, b.afternoon, b.night) map simulateShift
+    val busFreqs = Seq(b.morning, b.afternoon, b.night)
+    val paxFreqs = (0 until 2).map(paxFreqPerShift(_))
+    val freqs = busFreqs zip paxFreqs
+    val results = freqs map { case (b, p) => simulateShift (b, p)}
     results reduce ((a, b) => a + b)
   }
 }
@@ -21,5 +24,5 @@ class SimulationResult(val totalCost: Int,
     this.maxWaiting + that.maxWaiting
   )
 
-  def fitness: Double = 1 / (totalCost + standingPax + maxWaiting)
+  def fitness: Double = 100000 / (totalCost + standingPax + maxWaiting)
 }

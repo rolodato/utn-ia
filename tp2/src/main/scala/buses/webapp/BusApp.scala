@@ -21,7 +21,8 @@ object BusApp extends JSApp {
       e.preventDefault()
       val names = List("populationSize", "mutationProbability",
         "selectionPercentage", "iterationCount", "busCount", "seatsPerBus",
-        "standingPerBus", "roundTripMins", "roundTripCost")
+        "standingPerBus", "roundTripMins", "roundTripCost", "paxMorning",
+        "paxAfternoon", "paxNight", "maxInterval")
       val inputs = names.map(name => name -> document.getElementById(name).asInstanceOf[HTMLInputElement].valueAsNumber) toMap
       val genetic = new Genetic {
         implicit val busContext = new BusContext {
@@ -31,15 +32,20 @@ object BusApp extends JSApp {
           val roundTripMins: Int = inputs("roundTripMins")
           val roundTripCost: Int = inputs("roundTripCost")
           def departCondition(paxWaiting: Int): Boolean = paxWaiting > 0
+          val paxFreqPerShift: List[Int] = List(
+            inputs("paxMorning"),
+            inputs("paxAfternoon"),
+            inputs("paxNight")
+          )
         }
         def randomGene(): Gene = {
-          def rand(prop: Double) = (rng.nextInt(300) * prop).toInt
-          new BusFrequency(rand(1.0), rand(0.8), rand(0.7))
+          def rand = rng.nextInt(inputs("maxInterval")).toInt
+          new BusFrequency(rand, rand, rand)
         }
         val mutationProbability: Double = inputs("mutationProbability") / 100.0
         val populationSize: Int = inputs("populationSize")
         val selection: Selection = RouletteSelection()
-        val crossover: Crossover = OnePointCrossover()
+        val crossover: Crossover = OnePointCrossover(1)
         val mutation: Mutation = IntegerMutation()
         val selectionPercentage: Double = {
           inputs("selectionPercentage") / 100.0
