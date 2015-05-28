@@ -31,7 +31,7 @@ trait BusContext {
         val (_, i) = returnTimes.zipWithIndex.find{
           case (time, _) => time <= t
         }.get
-        returnTimes(i) = math.max(t + roundTripMins, t + minsToNextBus)
+        returnTimes(i) = t + roundTripMins + minsToNextBus
         totalCost += roundTripCost
         val toSit = math.min(paxWaiting, seatsPerBus)
         paxWaiting -= toSit

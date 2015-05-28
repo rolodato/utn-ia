@@ -52,14 +52,20 @@ object BusApp extends JSApp {
         }
         val rng: Random = Random
       }
+      def fitString(string: List[Int]) = {
+        s"${string(0)}, ${string(1)}, ${string(2)}"
+      }
       genetic.run(inputs("iterationCount")).onSuccess {
         case result =>
-          val fit = result.fittest.string
+          val lastBest = result.finalPopulation.head
+          val best = result.fittest
           document.getElementById("result").asInstanceOf[HTMLElement].style.display = "block"
-          document.getElementById("fittest").innerHTML = s"${fit(0)}, ${fit (1)}, ${fit(2)}"
-          document.getElementById("fitness").innerHTML = result.fittest.fitness.toString
+          document.getElementById("best").innerHTML = fitString(best.string)
+          document.getElementById("best-fitness").innerHTML = best.fitness.toString
           document.getElementById("evolution").innerHTML = result.fitnessEvolution.mkString("\n")
           document.getElementById("pop-fitness").innerHTML = result.finalPopulation.map(_.fitness).mkString("\n")
+          document.getElementById("last-best").innerHTML = fitString(lastBest.string)
+          document.getElementById("last-best-fitness").innerHTML = lastBest.fitness.toString
       }
     })
   }

@@ -44,7 +44,7 @@
       <label for="maxInterval">Intervalo máximo entre arribo de
         colectivos (minutos)</label>
       <input type="number" id="maxInterval" name="maxInterval" min="1"
-             step="1" value="30">
+             step="1" value="60">
     </p>
   </fieldset>
 
@@ -68,12 +68,12 @@
     <p>
       <label for="roundTripMins">Duración del viaje (minutos)</label>
       <input type="number" id="roundTripMins" name="roundTripMins" min="1"
-             step="1" value="15">
+             step="1" value="60">
     </p>
     <p>
       <label for="roundTripCost">Costo del viaje ($)</label>
       <input type="number" id="roundTripCost" name="roundTripCost" min="1"
-             step="1" value="5">
+             step="1" value="50">
     </p>
     <p>Pasajeros por hora por turno</p>
     <input type="number" id="paxMorning" name="paxMorning" min="1" step="1"
@@ -89,8 +89,12 @@
 </form>
 
 <div id="result" style="display: none;">
-  <p>Mejor resultado (mañana, tarde, noche): <span id="fittest"></span></p>
-  <p>Valor de aptitud: <span id="fitness"></span></p>
+  <p>Mejor resultado: <span id="best"></span></p>
+  <p>Valor de aptitud: <span id="best-fitness"></span></p>
+
+  <p>Mejor resultado (última población): <span id="last-best"></span></p>
+  <p>Valor de aptitud: <span id="last-best-fitness"></span></p>
+
   <p>Evolución de aptitud promedio (CSV):</p>
   <textarea id="evolution" rows="5" cols="50"></textarea>
   <p>Aptitud de la población (CSV):</p>
