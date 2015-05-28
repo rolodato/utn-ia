@@ -75,11 +75,13 @@
   </p>
 </form>
 
-<div id="results" style="">
+<div id="result" style="display: none;">
   <p>Mejor resultado (mañana, tarde, noche): <span id="fittest"></span></p>
   <p>Valor de aptitud: <span id="fitness"></span></p>
   <p>Evolución de aptitud promedio (CSV):</p>
-  <textarea id="csv" rows="5" cols="50"></textarea>
+  <textarea id="evolution" rows="5" cols="50"></textarea>
+  <p>Aptitud de la población (CSV):</p>
+  <textarea id="pop-fitness" rows="5" cols="50"></textarea>
 </div>
 
 <script src="target/scala-2.11/bus-frequency-opt.js"></script>

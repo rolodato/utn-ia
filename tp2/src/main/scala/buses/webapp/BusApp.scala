@@ -1,16 +1,16 @@
 package buses.webapp
 
-import buses.{SimulationResult, BusContext, BusFrequency}
+import buses.{BusContext, BusFrequency}
+import org.scalajs.dom.raw.{HTMLElement, HTMLInputElement}
 import org.scalajs.dom.{Event, document}
-import org.scalajs.dom.raw.HTMLInputElement
 import rolodato.genetics._
 import rolodato.genetics.impl.{IntegerMutation, OnePointCrossover, RouletteSelection}
 
 import scala.language.postfixOps
+import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
 import scala.scalajs.js
 import scala.scalajs.js.JSApp
 import scala.util.Random
-import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
 
 object BusApp extends JSApp {
   def main(): Unit = {
@@ -49,9 +49,11 @@ object BusApp extends JSApp {
       genetic.run(inputs("iterationCount")).onSuccess {
         case result =>
           val fit = result.fittest.string
+          document.getElementById("result").asInstanceOf[HTMLElement].style.display = "block"
           document.getElementById("fittest").innerHTML = s"${fit(0)}, ${fit (1)}, ${fit(2)}"
           document.getElementById("fitness").innerHTML = result.fittest.fitness.toString
-          document.getElementById("csv").innerHTML = result.fitnessEvolution.mkString(",")
+          document.getElementById("evolution").innerHTML = result.fitnessEvolution.mkString(",")
+          document.getElementById("pop-fitness").innerHTML = result.finalPopulation.map(_.fitness).mkString(",")
       }
     })
   }
