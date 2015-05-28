@@ -52,8 +52,8 @@ object BusApp extends JSApp {
           document.getElementById("result").asInstanceOf[HTMLElement].style.display = "block"
           document.getElementById("fittest").innerHTML = s"${fit(0)}, ${fit (1)}, ${fit(2)}"
           document.getElementById("fitness").innerHTML = result.fittest.fitness.toString
-          document.getElementById("evolution").innerHTML = result.fitnessEvolution.mkString(",")
-          document.getElementById("pop-fitness").innerHTML = result.finalPopulation.map(_.fitness).mkString(",")
+          document.getElementById("evolution").innerHTML = result.fitnessEvolution.mkString("\n")
+          document.getElementById("pop-fitness").innerHTML = result.finalPopulation.map(_.fitness).mkString("\n")
       }
     })
   }
