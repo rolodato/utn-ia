@@ -1,0 +1,334 @@
+\documentclass{conaiisi}
+
+\bibliography{conaiisi}
+
+\title{Optimización de frecuencias de colectivos con algoritmos genéticos}
+%\author{López Dato, Rodrigo}
+\author{\ }
+
+\affil{Universidad Tecnológica Nacional, Facultad Regional Buenos Aires}
+
+\usepackage{graphicx}
+\usepackage{subfigure}
+\graphicspath{{../img/}}
+
+\usepackage{color}
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+\usepackage{listings}
+\lstdefinelanguage{scala}{
+  morekeywords={abstract,case,catch,class,def,%
+    do,else,extends,false,final,finally,%
+    for,if,implicit,import,match,mixin,%
+    new,null,object,override,package,%
+    private,protected,requires,return,sealed,%
+    super,this,throw,trait,true,try,%
+    type,val,var,while,with,yield,Double},
+  otherkeywords={=>,<-,<\%,<:,>:,\#,@},
+  sensitive=true,
+  morecomment=[l]{//},
+  morecomment=[n]{/*}{*/},
+  morestring=[b]",
+  morestring=[b]',
+  morestring=[b]"""
+}
+\lstset{literate=
+	{á}{{\'a}}1
+	{Á}{{\'A}}1
+	{é}{{\'e}}1
+	{É}{{\'E}}1
+	{í}{{\'i}}1
+	{Í}{{\'Í}}1
+	{ó}{{\'o}}1
+	{Ó}{{\'O}}1
+	{ú}{{\'u}}1
+	{Ú}{{\'U}}1
+	{ü}{{\"u}}1
+	{~}{{\textasciitilde}}1
+	{ñ}{{\~n}}1
+	{Ñ}{{\~N}}1,
+	frame=tb,
+	language=scala,
+	aboveskip=3mm,
+	belowskip=3mm,
+	showstringspaces=false,
+	columns=flexible,
+	basicstyle={\footnotesize\ttfamily},
+	numbers=none,
+	numberstyle=\tiny\color{gray},
+	keywordstyle=\color{blue}\bfseries,
+	commentstyle=\color{dkgreen},
+	stringstyle=\color{mauve},
+	frame=single,
+	breaklines=true,
+	breakatwhitespace=true,
+	keepspaces=true,
+	tabsize=3
+}
+
+
+\begin{document}
+\maketitle
+
+\setlength\columnsep{1cm}
+\begin{multicols}{2}
+
+\smallsection{Abstract}{%
+Buscamos optimizar las frecuencias con las que deben partir colectivos urbanos para minimizar el costo total, la cantidad de pasajeros que viajan parados, y la cantidad máxima de pasajeros esperando a la vez.
+Para resolver este problema implementamos un algoritmo genético utilizando una biblioteca propia en Scala.
+}
+
+\smallsection{Palabras clave}{%
+algoritmos genéticos, transporte de pasajeros, optimización, Scala
+}
+
+\mainsection{Introducción}{%
+
+% TODO Considerar trabajos anteriores?
+
+El problema que buscamos resolver es el de optimizar con qué frecuencias deben partir colectivos urbanos para minimizar las siguientes tres variables, que se consideran con el mismo peso a la hora de comparar posibles soluciones:
+
+\begin{itemize}
+	\item Costo total
+	\item Cantidad de pasajeros que viajan parados
+	\item Máxima cantidad de pasajeros esperando a la vez
+\end{itemize}
+}
+
+Éste es un problema de optimización con un espacio de búsqueda continuo, por lo cual resulta difícil encontrar una fórmula o algoritmo convencional que pueda encontrar soluciones óptimas.
+Por este motivo elegimos implementar un algoritmo genético para resolverlo.
+Los algoritmos genéticos permiten encontrar soluciones potencialmente óptimas a problemas complejos de búsqueda y optimización mediante un proceso estocástico que emula el comportamiento de una población de organismos biológicos sujeta a selección natural.
+
+\mainsection{Elementos del trabajo y metodología}{%
+
+El primer paso para implementar un algoritmo genético es definir un modelo que represente la realidad con un grado adecuado de fidelidad.
+En nuestro modelo, existen tres turnos: mañana, tarde y noche.
+En cada turno viajan distintas cantidades de pasajeros, que modelamos mediante la cantidad de pasajeros que llegan por hora a la parada.
+Para simplificar el modelo, tuvimos en cuenta varios supuestos.
+Existe una única parada y un único destino; todos los pasajeros suben y descienden en las mismas paradas.
+Cada colectivo tarda exactamente el mismo tiempo en realizar el recorrido.
+Todos los colectivos son idénticos en cuanto a capacidad, tanto para pasajeros sentados como parados.
+El costo de cada viaje es fijo, y no se consideran los ingresos por los boletos de los pasajeros.
+Cada turno empieza "desde cero", es decir, al principio de cada turno se considera que todos los colectivos están listos para salir desde la parada.
+Por último, consideramos que la frecuencia con la que llegan pasajeros es exacta, es decir, cada hora llega exactamente la cantidad especificada de pasajeros a la parada.
+
+A partir de estos supuestos, definimos las siguientes variables de contexto:
+
+\begin{itemize}
+	\item Cantidad de colectivos
+	\item Cantidad de asientos por colectivo
+	\item Capacidad para pasajeros parados
+	\item Tiempo de recorrido en minutos
+	\item Costo de recorrido
+\end{itemize}
+}
+
+Como oportunidad de aprendizaje, optamos por crear una biblioteca de algoritmos genéticos con los operadores\footnote{Un operador genético es una etapa dentro de un algoritmo genético. Los principales operadores son mutación, cruzamiento y selección.} utilizados en este trabajo que llamamos Genetics\cite{genetics}.
+Elegimos implementar todo el código en Scala por conocimientos previos, la expresividad del lenguaje y la funcionalidad disponible en la biblioteca standard.
+Scala también nos permite utilizar Scala.js\cite{scalajs} (compilador de Scala a JavaScript) para facilitar la distribución de un ejecutable mediante una página web estática en lugar de un paquete instalable.
+
+\paragraph{}
+Dado un turno, la cantidad de pasajeros a transportar por hora y las variables del contexto, resulta poco práctico, quizás imposible, encontrar una función\footnote{Nuestra implementación particular es determinista por lo que podría considerarse una función, pero no existe una fórmula que permita calcular el resultado de una simulación sin realizar las iteraciones necesarias.} que devuelva los resultados deseados.
+Por este motivo, elegimos calcularlo mediante una simulación dinámica.
+
+La simulación se ejecuta para cada turno de manera independiente, recibiendo como entrada las variables de contexto y la frecuencia de pasajeros del turno actual.
+Devuelve como resultados las tres variables de interés: costo total, cantidad de pasajeros que viajan parados, y máxima cantidad de pasajeros esperando a la vez.
+
+El código de la simulación está en el método \texttt{simulateShift} del tipo \texttt{BusContext}, que define también las variables de contexto.
+
+\paragraph{}
+A continuación describimos cada componente del algoritmo implementado en detalle.
+La implementación abstracta de un algoritmo genético, que es adaptable a otros operadores, se encuentra en la clase \texttt{Genetic}.
+
+% Definición del cromosoma
+
+Definimos un cromosoma\footnote{El cromosoma es una estructura que representa un organismo en un algoritmo genético.} a partir de tres genes, cada uno representando la demora en minutos antes de enviar un colectivo en cada turno.
+Por ejemplo, el cromosoma $(1,2,3)$ indica que cada colectivo en el turno noche realiza su viaje y espera tres minutos antes de llevar pasajeros nuevamente.
+
+% Operadores genéticos
+
+\paragraph{Población inicial} Generación aleatoria de cromosomas de tamaño fijo, teniendo en cuenta valores máximos para cada frecuencia.
+Por ejemplo:
+
+\lstinputlisting{../src/randomGene.scala}
+
+\paragraph{Selección} Proporcional a la aptitud (ruleta). Se aplica repetidamente el algoritmo hasta llegar a un porcentaje configurable de selección relativo al tamaño de la población inicial\footnote{Ver implementación en la clase \texttt{RouletteSelection}.}.
+
+\paragraph{Cruzamiento} Simple.
+Como estamos utilizando cromosomas con únicamente tres valores, elegimos siempre el segundo elemento como punto de cruzamiento (\texttt{xop} por \textit{\foreignlanguage{english}{crossover point}}), lo que evita devolver individuos duplicados al cruzar.
+Se cruzan dos individuos al azar hasta llegar al tamaño de la población inicial.
+Si se generan más individuos que los necesarios, se eliminan\footnote{Ver implementación en la clase \texttt{OnePointCrossover}.}.
+
+\paragraph{Mutación} Simple, de probabilidad constante. Se permite configurar el porcentaje de mutación\footnote{Ver implementación en la clase \texttt{IntegerMutation}.}.
+
+\paragraph{Función de aptitud}
+
+Como deseamos minimizar las tres variables resultantes de la simulación y las variables tienen el mismo peso, definimos la función de aptitud para esta terna de valores:
+
+\[ f(c, p, m) = \frac{10^5}{c + p + m} \]
+
+donde $c$, $p$ y $m$ son costo total, pasajeros parados y máxima cantidad de pasajeros esperando respectivamente.
+El factor de $10^5$ es para evitar errores de redondeo por usar números muy pequeños.
+
+En nuestra implementación, los cromosomas son objetos de tipo \texttt{BusFrequency} que tienen un método \texttt{fitness} (aptitud).
+Este método ejecuta la simulación para cada turno, reúne los resultados en un objeto de tipo \texttt{SimulationResult} y calcula la aptitud utilizando la fórmula anterior.
+
+\mainsection{Resultados}{%
+En todos los casos, los parámetros de simulación utilizados fueron los siguientes:
+
+\begin{itemize}
+	\item Cantidad de colectivos: 10
+	\item Asientos por colectivo: 30
+	\item Capacidad para pasajeros parados: 15
+	\item Duración del viaje: 60 minutos
+	\item Costo del viaje: \$50
+	\item Pasajeros por hora en cada turno: 500, 300 y 200
+\end{itemize}
+
+La población inicial en cada caso se generó tomando intervalos entre arribos aleatorios entre 0 y 60 minutos.
+
+Las siguientes páginas detallan los resultados de tres corridas con distintos parámetros seleccionados para mostrar el comportamiento de un algoritmo genético en distintas condiciones.
+La selección de estos parámetros para un caso real de optimización de recorridos se discutirá más adelante.
+
+En todos los casos se utilizó el frontend web\cite{frontend} para ejecutar las corridas, que emite todos los resultados necesarios para confeccionar los gráficos presentados.
+
+\end{multicols}
+\newgeometry{left=2cm,right=2cm,top=1.5cm,bottom=1.5cm}
+\newpage
+
+\subsubsection*{Parámetros aplicados}
+
+\begin{multicols}{2}
+\begin{itemize}
+	\item Tamaño de población: 300
+	\item Probabilidad de mutación: 1\%
+	\item Porcentaje de selección: 80\%
+	\item Cantidad de iteraciones: 100
+\end{itemize}
+\end{multicols}
+
+\subsubsection*{Mejores individuos}
+\begin{itemize}
+	\item Global: $(0, 12, 0)$ con valor de aptitud aptitud 242.
+	\item En última población: $(0, 22, 4)$ con valor de aptitud 121.
+\end{itemize}
+
+\begin{figure}[h!]
+\centering
+\subfigure[Evolución de aptitud media]{\includegraphics{../data/img/evolution-1}}
+\subfigure[Histograma de población final]{\includegraphics{../data/img/fitness-1}}
+\caption{Corrida 1}
+\end{figure}
+
+\newpage
+
+\subsubsection*{Parámetros aplicados}
+
+\begin{multicols}{2}
+\begin{itemize}
+	\item Tamaño de población: 100
+	\item Probabilidad de mutación: 1\%
+	\item Porcentaje de selección: 80\%
+	\item Cantidad de iteraciones: 2000
+\end{itemize}
+\end{multicols}
+
+\subsubsection*{Mejores individuos}
+\begin{itemize}
+	\item Global: $(0, 0, 17)$ con valor de aptitud 239.
+	\item En última población: $(0, 0, 17)$ con valor de aptitud 239.
+\end{itemize}
+
+\begin{figure}[h!]
+\centering
+\subfigure[Evolución de aptitud media]{\includegraphics{../data/img/evolution-2}}
+\subfigure[Histograma de población final]{\includegraphics{../data/img/fitness-2}}
+\caption{Corrida 2}
+\end{figure}
+
+
+\newpage
+
+\subsubsection*{Parámetros aplicados}
+
+\begin{multicols}{2}
+\begin{itemize}
+	\item Tamaño de población: 100
+	\item Probabilidad de mutación: 90\%
+	\item Porcentaje de selección: 20\%
+	\item Cantidad de iteraciones: 2000
+\end{itemize}
+\end{multicols}
+
+\subsubsection*{Mejores individuos}
+\begin{itemize}
+	\item Global: $(0, 1, 0)$ con valor de aptitud 249.
+	\item En última población: $(0, 1, 0)$ con valor de aptitud 249.
+\end{itemize}
+
+\begin{figure}[h!]
+\centering
+\subfigure[Evolución de aptitud media]{\includegraphics{../data/img/evolution-3}}
+\subfigure[Histograma de población final]{\includegraphics{../data/img/fitness-3}}
+\caption{Corrida 3}
+\end{figure}
+
+}
+
+\newgeometry{left=2cm,right=2cm,top=2cm,bottom=2cm}
+\begin{multicols}{2}
+\mainsection{Discusión}{%
+
+Podemos observar que las tres corridas obtuvieron resultados similares en cuanto al mejor individuo, sin embargo es interesante analizar los resultados enteros de cada corrida por separado.
+
+La corrida 1 utiliza una población grande pero con una cantidad baja de iteraciones.
+Llegó a un resultado alto por azar, pero la aptitud media final es la más baja de todas las corridas.
+Esto se debe a que nuestro algoritmo requiere de más iteraciones para converger en un máximo.
+
+En cambio, la corrida 2 utiliza una población más pequeña con 20 veces más iteraciones. En este caso podemos observar claramente la convergencia de la aptitud media a un valor cercano a 230, no muy lejos del mejor individuo de toda la corrida.
+Sin embargo, viendo el histograma de la población, se ve que existen dos grupos claramente marcados de aptitudes.
+Analizando los datos completos pudimos observar que existen numerosos resultados duplicados en la población final, posiblemente debido a nuestra elección de método de cruzamiento.
+
+Finalmente, la última corrida también utiliza una población pequeña con 2000 iteraciones, pero utiliza un porcentaje de selección más restrictivo y una alta probabilidad de mutación.
+Esto se puede observar inmediatamente en el gráfico de evolución; no se nota una convergencia clara como en el caso de la segunda corrida.
+También se observan grupos aislados de aptitudes en el histograma, causados por la duplicación de cromosomas a lo largo de tantas iteraciones.
+
+Al ser éste un trabajo de aprendizaje, no se contemplaron criterios o restricciones que sean aplicables a la problemática de una línea real de colectivos.
+Esto es únicamente por restricciones de alcance, pero si se desearan contemplar parámetros del mundo real, sería necesario revisar los supuestos del modelo y agregar las condiciones necesarias a la generación de individuos y/o función de aptitud.
+Por ejemplo, se observan muchos resultados con aptitud maximal donde hay elementos con valor cero, es decir, en ese turno no saldrían colectivos; esto podría considerarse inaceptable según las restricciones del dominio.
+
+}
+
+\mainsection{Conclusión}{%
+
+Pudimos observar que los algoritmos genéticos son una herramienta eficaz para resolver problemas que no se pueden resolver mediante algoritmos tradicionales.
+Genetics no acopla los operadores genéticos al dominio del problema, por lo que es lo suficientemente flexible para soportar distintos operadores que no fueron evaluados.
+Otros operadores podrían permitir generar mejores soluciones o reducir los tiempos de procesamiento.
+
+Un punto importante de mejora a futuro sería optimizar Genetics para poder hacer corridas en tiempos razonables con cientos de miles de individuos e iteraciones, quizás mediante paralelismo o un sistemas distribuidos.
+
+Habiendo implementado todos los operadores, pudimos observar la complejidad que implica diseñar cada uno y la cantidad de decisiones que deben tomarse para llegar a un resultado satisfactorio.
+Concluimos que si tuviésemos que implementar un algoritmo genético para un problema real, no implementaríamos nuestra propia biblioteca, sino que recomendamos utilizar bibliotecas lo suficientemente testeadas para ser utilizadas en producción como JGAP\cite{jgap} o Jenetics\cite{jenetics}.
+Sin embargo, la implementación de Genetics es lo suficientemente sencilla para ser utilizada como base para futuras versiones con mejor funcionalidad, o como un ejercicio de aprendizaje.
+Al ser software libre, invitamos a cualquier interesado a estudiar su implementación y contribuir mejoras.
+
+}
+
+\smallsection{Agradecimientos}{%
+A los profesores y ayudantes de Inteligencia Artificial (UTN FRBA), por sugerir este tema de investigación y por el apoyo para publicarlo.
+A Ignacio Rodríguez Genta, por su inspiración.
+}
+
+%\smallsection{Datos de contacto}{%
+%Rodrigo López Dato\\
+%Universidad Tecnológica Nacional, FRBA\\
+%rlopezdato@gmail.com
+%}
+
+\printbibliography[heading=subbibintoc]
+
+\end{multicols}
+
+
+\end{document}
