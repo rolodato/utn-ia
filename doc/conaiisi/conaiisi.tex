@@ -76,7 +76,7 @@
 
 \smallsection{Abstract}{%
 En este informe se busca presentar el trabajo realizado donde se busca optimizar las frecuencias con las que deben partir colectivos urbanos para minimizar el costo total, la cantidad de pasajeros que viajan parados, y la cantidad máxima de pasajeros esperando a la vez.
-Para resolver este problema implementamos un algoritmo genético utilizando una biblioteca propia en Scala.
+Para resolver este problema, se implementa un algoritmo genético utilizando una biblioteca propia en Scala.
 }
 
 \smallsection{Palabras clave}{%
@@ -86,7 +86,7 @@ algoritmos genéticos, transporte de pasajeros, optimización, resolución de pr
 \mainsection{Introducción}{%
 
 En el marco de la asignatura ``Inteligencia Artificial'' del quinto año de la carrera de Ingeniería en Sistemas de la UTN FRBA, se lleva a cabo la resolución de problemas mediante la aplicación de sistemas inteligentes.
-El problema que buscamos resolver es el de optimizar las frecuencias con que deben partir colectivos urbanos para minimizar las siguientes tres variables, que se consideran con el mismo peso a la hora de comparar posibles soluciones:
+El problema que se busca resolver es el de optimizar las frecuencias con que deben partir colectivos urbanos para minimizar las siguientes tres variables, que se consideran con el mismo peso a la hora de comparar posibles soluciones:
 
 \begin{itemize}
 	\item Costo total
@@ -96,7 +96,7 @@ El problema que buscamos resolver es el de optimizar las frecuencias con que deb
 }
 
 Éste es un problema de optimización con un espacio de búsqueda continuo, por lo cual resulta difícil encontrar una fórmula o algoritmo convencional que pueda encontrar soluciones óptimas.
-Por este motivo elegimos implementar un algoritmo genético para resolverlo.
+Por este motivo se eligió implementar un algoritmo genético para resolverlo.
 
 Los algoritmos genéticos\cite{geneticalgorithms} permiten encontrar soluciones potencialmente óptimas a problemas complejos de búsqueda y optimización mediante un proceso estocástico que emula el comportamiento de una población de organismos biológicos sujeta a selección natural.
 
@@ -104,12 +104,11 @@ En este trabajo se describen en primer lugar los elementos aplicados para resolv
 Luego se indican los resultados obtenidos en su respectivo análisis.
 Finalmente, las conclusiones correspondientes y las futuras líneas de trabajo.
 
-
 \mainsection{Elementos del trabajo y metodología}{%
 
 El primer paso para implementar un algoritmo genético es definir un modelo que represente la realidad con un grado adecuado de fidelidad\cite{sistemasinteligentes}.
-En nuestro modelo, existen tres turnos: mañana, tarde y noche.
-En cada turno viajan distintas cantidades de pasajeros, que modelamos mediante la cantidad de pasajeros que llegan por hora a la parada.
+En el modelo definido, existen tres turnos: mañana, tarde y noche.
+En cada turno viajan distintas cantidades de pasajeros, que se modelan mediante la cantidad de pasajeros que llegan por hora a la parada.
 Para simplificar el modelo, tuvimos en cuenta varios supuestos:
 \begin{itemize}
 \item Existe una única parada y un único destino; todos los pasajeros suben y descienden en las mismas paradas
@@ -120,7 +119,7 @@ Para simplificar el modelo, tuvimos en cuenta varios supuestos:
 \item La frecuencia con la que llegan pasajeros es exacta, es decir, cada hora llega exactamente la cantidad especificada de pasajeros a la parada
 \end{itemize}
 
-A partir de estos supuestos, definimos las siguientes variables de contexto:
+A partir de estos supuestos, se definen las siguientes variables de contexto:
 
 \begin{itemize}
 	\item Cantidad de colectivos
@@ -131,13 +130,13 @@ A partir de estos supuestos, definimos las siguientes variables de contexto:
 \end{itemize}
 }
 
-Como oportunidad de aprendizaje, optamos por crear una biblioteca de algoritmos genéticos con los operadores\footnote{Un operador genético es una etapa dentro de un algoritmo genético. Los principales operadores son mutación, cruzamiento y selección.} utilizados en este trabajo que llamamos Genetics\cite{genetics}.
-Elegimos implementar todo el código en Scala por conocimientos previos, la expresividad del lenguaje y la funcionalidad disponible en la biblioteca standard.
-Scala también nos permite utilizar Scala.js\cite{scalajs} (compilador de Scala a JavaScript) para facilitar la distribución de un ejecutable mediante una página web estática en lugar de un paquete instalable.
+Como oportunidad de aprendizaje, se optó por crear una biblioteca de algoritmos genéticos con los operadores\footnote{Un operador genético es una etapa dentro de un algoritmo genético. Los principales operadores son mutación, cruzamiento y selección.} utilizados en este trabajo que llamamos Genetics\cite{genetics}.
+Se eligió implementar todo el código en Scala por conocimientos previos, la expresividad del lenguaje y la funcionalidad disponible en la biblioteca standard.
+Scala también permite utilizar Scala.js\cite{scalajs} (compilador de Scala a JavaScript) para facilitar la distribución de un ejecutable mediante una página web estática en lugar de un paquete instalable.
 
 \paragraph{}
-Dado un turno, la cantidad de pasajeros a transportar por hora y las variables del contexto, resulta poco práctico, quizás imposible, encontrar una función\footnote{Nuestra implementación particular es determinista por lo que podría considerarse una función, pero no existe una fórmula que permita calcular el resultado de una simulación sin realizar las iteraciones necesarias.} que devuelva los resultados deseados.
-Por este motivo, elegimos calcularlo mediante una simulación dinámica.
+Dado un turno, la cantidad de pasajeros a transportar por hora y las variables del contexto, resulta poco práctico, quizás imposible, encontrar una función\footnote{Ésta implementación particular es determinista por lo que podría considerarse una función, pero no existe una fórmula que permita calcular el resultado de una simulación sin realizar las iteraciones necesarias.} que devuelva los resultados deseados.
+Por este motivo, se eligió calcularlo mediante una simulación dinámica.
 
 La simulación se ejecuta para cada turno de manera independiente, recibiendo como entrada las variables de contexto y la frecuencia de pasajeros del turno actual.
 Devuelve como resultados las tres variables de interés: costo total, cantidad de pasajeros que viajan parados, y máxima cantidad de pasajeros esperando a la vez.
@@ -145,17 +144,17 @@ Devuelve como resultados las tres variables de interés: costo total, cantidad d
 El código de la simulación está en el método \texttt{simulateShift} del tipo \texttt{BusContext}, que define también las variables de contexto.
 
 \paragraph{}
-A continuación describimos cada componente del algoritmo implementado en detalle.
+A continuación se describe cada componente del algoritmo implementado en detalle.
 La implementación abstracta de un algoritmo genético, que es adaptable a otros operadores, se encuentra en la clase \texttt{Genetic}.
 
 \paragraph{Cromosoma}
 
-Definimos un cromosoma\footnote{El cromosoma es una estructura que representa un organismo en un algoritmo genético.} a partir de tres genes, cada uno representando la demora en minutos antes de enviar un colectivo en cada turno.
+Se define un cromosoma\footnote{El cromosoma es una estructura que representa un organismo en un algoritmo genético.} a partir de tres genes, cada uno representando la demora en minutos antes de enviar un colectivo en cada turno.
 Por ejemplo, el cromosoma $(1,2,3)$ indica que cada colectivo en el turno noche realiza su viaje y espera tres minutos antes de llevar pasajeros nuevamente.
 
 \paragraph{Función de aptitud}
 
-Como deseamos minimizar las tres variables resultantes de la simulación y las variables tienen el mismo peso, definimos la función de aptitud para esta terna de valores:
+Como se desea minimizar las tres variables resultantes de la simulación y las variables tienen el mismo peso, se define la función de aptitud para esta terna de valores:
 
 \[ f(c, p, m) = \frac{10^5}{c + p + m} \]
 
@@ -172,14 +171,14 @@ Por ejemplo:
 \paragraph{Selección} Proporcional a la aptitud (ruleta). Se aplica repetidamente el algoritmo hasta llegar a un porcentaje configurable de selección relativo al tamaño de la población inicial (ver implementación en la clase \texttt{RouletteSelection}).
 
 \paragraph{Cruzamiento} Simple.
-Como estamos utilizando cromosomas con únicamente tres valores, elegimos siempre el segundo elemento como punto de cruzamiento (\texttt{xop} por \textit{\foreignlanguage{english}{crossover point}}), lo que evita devolver individuos duplicados al cruzar.
+Como se están utilizando cromosomas con únicamente tres valores, se elige siempre el segundo elemento como punto de cruzamiento (\texttt{xop} por \textit{\foreignlanguage{english}{crossover point}}), lo que evita devolver individuos duplicados al cruzar.
 Se cruzan dos individuos al azar hasta llegar al tamaño de la población inicial.
 Si se generan más individuos que los necesarios, se eliminan (ver implementación en la clase \texttt{OnePointCrossover}).
 
 \paragraph{Mutación} Simple, de probabilidad constante. Se permite configurar el porcentaje de mutación\footnote{Ver implementación en la clase \texttt{IntegerMutation}.}.
 
-En nuestra implementación, los cromosomas son objetos de tipo \texttt{BusFrequency} que tienen un método \texttt{fitness} (aptitud).
-Este método ejecuta la simulación para cada turno, reúne los resultados en un objeto de tipo \texttt{SimulationResult} y calcula la aptitud utilizando la fórmula anterior.
+En ésta implementación, los cromosomas son objetos de tipo \texttt{BusFrequency} que tienen un método \texttt{fitness} (aptitud).
+Éste método ejecuta la simulación para cada turno, reúne los resultados en un objeto de tipo \texttt{SimulationResult} y calcula la aptitud utilizando la fórmula anterior.
 
 \mainsection{Resultados}{%
 En todos los casos, los parámetros de simulación utilizados fueron los siguientes:
@@ -287,17 +286,17 @@ En todos los casos se utilizó el frontend web\cite{frontend} para ejecutar las 
 \begin{multicols}{2}
 \mainsection{Discusión}{%
 
-Podemos observar que las tres corridas obtuvieron resultados similares en cuanto al mejor individuo, sin embargo es interesante analizar los resultados enteros de cada corrida por separado.
+Se observa que las tres corridas obtuvieron resultados similares en cuanto al mejor individuo, sin embargo es interesante analizar los resultados enteros de cada corrida por separado.
 
 La primera corrida utiliza una población grande pero con una cantidad baja de iteraciones.
 Llegó a un resultado alto por azar, pero la aptitud media final es la más baja de todas las corridas.
 Esto se debe a que nuestro algoritmo requiere de más iteraciones para converger en un máximo.
 
-En cambio, la segunda corrida utiliza una población más pequeña con 20 veces más iteraciones. En este caso podemos observar claramente la convergencia de la aptitud media a un valor cercano a 230, no muy lejos del mejor individuo de toda la corrida.
+En cambio, la segunda corrida utiliza una población más pequeña con 20 veces más iteraciones. En este caso se observa claramente la convergencia de la aptitud media a un valor cercano a 230, no muy lejos del mejor individuo de toda la corrida.
 Sin embargo, viendo el histograma de la población, se ve que existen dos grupos claramente marcados de aptitudes.
-Analizando los datos completos pudimos observar que existen numerosos resultados duplicados en la población final, posiblemente debido a nuestra elección de método de cruzamiento.
+Analizando los datos completos se observa que existen numerosos resultados duplicados en la población final, posiblemente debido a la elección de método de cruzamiento.
 
-Finalmente, la última corrida también utiliza una población pequeña con 2000 iteraciones, pero utiliza un porcentaje de selección más restrictivo y una alta probabilidad de mutación.
+Finalmente, la última corrida también utiliza una población pequeña con 2000 iteraciones, pero con un porcentaje de selección más restrictivo y una alta probabilidad de mutación.
 Esto se puede observar inmediatamente en el gráfico de evolución; no se nota una convergencia clara como en el caso de la segunda corrida.
 También se observan grupos aislados de aptitudes en el histograma, causados por la duplicación de cromosomas a lo largo de tantas iteraciones.
 
@@ -309,16 +308,16 @@ Por ejemplo, se observan muchos resultados con aptitud maximal donde hay element
 
 \mainsection{Conclusión}{%
 
-Pudimos observar que los algoritmos genéticos son una herramienta eficaz para resolver problemas que no se pueden resolver mediante algoritmos tradicionales.
+Se pudo observar que los algoritmos genéticos son una herramienta eficaz para resolver problemas que no se pueden resolver mediante algoritmos tradicionales.
 Genetics no acopla los operadores genéticos al dominio del problema, por lo que es lo suficientemente flexible para soportar distintos operadores que no fueron evaluados.
 Otros operadores podrían permitir generar mejores soluciones o reducir los tiempos de procesamiento.
 
 Un punto importante de mejora a futuro sería optimizar Genetics para poder hacer corridas en tiempos razonables con cientos de miles de individuos e iteraciones, quizás mediante paralelismo o un sistemas distribuidos.
 
-Habiendo implementado todos los operadores, pudimos observar la complejidad que implica diseñar cada uno y la cantidad de decisiones que deben tomarse para llegar a un resultado satisfactorio.
-Concluimos que si tuviésemos que implementar un algoritmo genético para un problema real, no implementaríamos nuestra propia biblioteca, sino que recomendamos utilizar bibliotecas lo suficientemente testeadas para ser utilizadas en producción como JGAP\cite{jgap} o Jenetics\cite{jenetics}.
+Habiendo implementado todos los operadores, se pudo observar la complejidad que implica diseñar cada uno y la cantidad de decisiones que deben tomarse para llegar a un resultado satisfactorio.
+Se concluye que si se tuviese que implementar un algoritmo genético para un problema real, no se implementaría una biblioteca propia, sino que se recomendaría utilizar bibliotecas lo suficientemente testeadas para ser utilizadas en producción como JGAP\cite{jgap} o Jenetics\cite{jenetics}.
 Sin embargo, la implementación de Genetics es lo suficientemente sencilla para ser utilizada como base para futuras versiones con mejor funcionalidad, o como un ejercicio de aprendizaje.
-Al ser software libre, invitamos a cualquier interesado a estudiar su implementación y contribuir mejoras.
+Al ser software libre, se invita a cualquier interesado a estudiar su implementación y contribuir mejoras.
 
 }
 
