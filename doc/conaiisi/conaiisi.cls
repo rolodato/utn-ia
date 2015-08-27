@@ -43,6 +43,11 @@
 }
 
 \titleformat*{\subsection}{\fontsize{10pt}{12pt}\bfseries}
+
+\titleformat*{\paragraph}{\fontsize{12pt}{14.4pt}\itshape}
+
+\titleformat*{\subsubsection}{\fontsize{12pt}{14.4pt}\itshape}
+
 \newcommand{\smallsection}[2]{%
   \subsection*{#1}
   \fontsize{10pt}{12pt}

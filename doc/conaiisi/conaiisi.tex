@@ -2,11 +2,11 @@
 
 \bibliography{conaiisi}
 
-\title{Optimización de frecuencias de colectivos con algoritmos genéticos}
+\title{Optimización de frecuencias de colectivos con Algoritmos Genéticos}
 %\author{López Dato, Rodrigo}
 \author{\ }
 
-\affil{Universidad Tecnológica Nacional, Facultad Regional Buenos Aires}
+%\affil{Universidad Tecnológica Nacional, Facultad Regional Buenos Aires}
 
 \usepackage{graphicx}
 \usepackage{subfigure}
@@ -75,19 +75,18 @@
 \begin{multicols}{2}
 
 \smallsection{Abstract}{%
-Buscamos optimizar las frecuencias con las que deben partir colectivos urbanos para minimizar el costo total, la cantidad de pasajeros que viajan parados, y la cantidad máxima de pasajeros esperando a la vez.
+En este informe se busca presentar el trabajo realizado donde se busca optimizar las frecuencias con las que deben partir colectivos urbanos para minimizar el costo total, la cantidad de pasajeros que viajan parados, y la cantidad máxima de pasajeros esperando a la vez.
 Para resolver este problema implementamos un algoritmo genético utilizando una biblioteca propia en Scala.
 }
 
 \smallsection{Palabras clave}{%
-algoritmos genéticos, transporte de pasajeros, optimización, Scala
+algoritmos genéticos, transporte de pasajeros, optimización, resolución de problemas
 }
 
 \mainsection{Introducción}{%
 
-% TODO Considerar trabajos anteriores?
-
-El problema que buscamos resolver es el de optimizar con qué frecuencias deben partir colectivos urbanos para minimizar las siguientes tres variables, que se consideran con el mismo peso a la hora de comparar posibles soluciones:
+En el marco de la asignatura ``Inteligencia Artificial'' del quinto año de la carrera de Ingeniería en Sistemas de la UTN FRBA, se lleva a cabo la resolución de problemas mediante la aplicación de sistemas inteligentes.
+El problema que buscamos resolver es el de optimizar las frecuencias con que deben partir colectivos urbanos para minimizar las siguientes tres variables, que se consideran con el mismo peso a la hora de comparar posibles soluciones:
 
 \begin{itemize}
 	\item Costo total
@@ -98,20 +97,28 @@ El problema que buscamos resolver es el de optimizar con qué frecuencias deben 
 
 Éste es un problema de optimización con un espacio de búsqueda continuo, por lo cual resulta difícil encontrar una fórmula o algoritmo convencional que pueda encontrar soluciones óptimas.
 Por este motivo elegimos implementar un algoritmo genético para resolverlo.
-Los algoritmos genéticos permiten encontrar soluciones potencialmente óptimas a problemas complejos de búsqueda y optimización mediante un proceso estocástico que emula el comportamiento de una población de organismos biológicos sujeta a selección natural.
+
+Los algoritmos genéticos\cite{geneticalgorithms} permiten encontrar soluciones potencialmente óptimas a problemas complejos de búsqueda y optimización mediante un proceso estocástico que emula el comportamiento de una población de organismos biológicos sujeta a selección natural.
+
+En este trabajo se describen en primer lugar los elementos aplicados para resolver el problema.
+Luego se indican los resultados obtenidos en su respectivo análisis.
+Finalmente, las conclusiones correspondientes y las futuras líneas de trabajo.
+
 
 \mainsection{Elementos del trabajo y metodología}{%
 
-El primer paso para implementar un algoritmo genético es definir un modelo que represente la realidad con un grado adecuado de fidelidad.
+El primer paso para implementar un algoritmo genético es definir un modelo que represente la realidad con un grado adecuado de fidelidad\cite{sistemasinteligentes}.
 En nuestro modelo, existen tres turnos: mañana, tarde y noche.
 En cada turno viajan distintas cantidades de pasajeros, que modelamos mediante la cantidad de pasajeros que llegan por hora a la parada.
-Para simplificar el modelo, tuvimos en cuenta varios supuestos.
-Existe una única parada y un único destino; todos los pasajeros suben y descienden en las mismas paradas.
-Cada colectivo tarda exactamente el mismo tiempo en realizar el recorrido.
-Todos los colectivos son idénticos en cuanto a capacidad, tanto para pasajeros sentados como parados.
-El costo de cada viaje es fijo, y no se consideran los ingresos por los boletos de los pasajeros.
-Cada turno empieza "desde cero", es decir, al principio de cada turno se considera que todos los colectivos están listos para salir desde la parada.
-Por último, consideramos que la frecuencia con la que llegan pasajeros es exacta, es decir, cada hora llega exactamente la cantidad especificada de pasajeros a la parada.
+Para simplificar el modelo, tuvimos en cuenta varios supuestos:
+\begin{itemize}
+\item Existe una única parada y un único destino; todos los pasajeros suben y descienden en las mismas paradas
+\item Cada colectivo tarda exactamente el mismo tiempo en realizar el recorrido
+\item Todos los colectivos son idénticos en cuanto a capacidad, tanto para pasajeros sentados como parados
+\item El costo de cada viaje es fijo, y no se consideran los ingresos por los boletos de los pasajeros
+\item Cada turno empieza "desde cero", es decir, al principio de cada turno se considera que todos los colectivos están listos para salir desde la parada
+\item La frecuencia con la que llegan pasajeros es exacta, es decir, cada hora llega exactamente la cantidad especificada de pasajeros a la parada
+\end{itemize}
 
 A partir de estos supuestos, definimos las siguientes variables de contexto:
 
@@ -141,26 +148,10 @@ El código de la simulación está en el método \texttt{simulateShift} del tipo
 A continuación describimos cada componente del algoritmo implementado en detalle.
 La implementación abstracta de un algoritmo genético, que es adaptable a otros operadores, se encuentra en la clase \texttt{Genetic}.
 
-% Definición del cromosoma
+\paragraph{Cromosoma}
 
 Definimos un cromosoma\footnote{El cromosoma es una estructura que representa un organismo en un algoritmo genético.} a partir de tres genes, cada uno representando la demora en minutos antes de enviar un colectivo en cada turno.
 Por ejemplo, el cromosoma $(1,2,3)$ indica que cada colectivo en el turno noche realiza su viaje y espera tres minutos antes de llevar pasajeros nuevamente.
-
-% Operadores genéticos
-
-\paragraph{Población inicial} Generación aleatoria de cromosomas de tamaño fijo, teniendo en cuenta valores máximos para cada frecuencia.
-Por ejemplo:
-
-\lstinputlisting{../src/randomGene.scala}
-
-\paragraph{Selección} Proporcional a la aptitud (ruleta). Se aplica repetidamente el algoritmo hasta llegar a un porcentaje configurable de selección relativo al tamaño de la población inicial\footnote{Ver implementación en la clase \texttt{RouletteSelection}.}.
-
-\paragraph{Cruzamiento} Simple.
-Como estamos utilizando cromosomas con únicamente tres valores, elegimos siempre el segundo elemento como punto de cruzamiento (\texttt{xop} por \textit{\foreignlanguage{english}{crossover point}}), lo que evita devolver individuos duplicados al cruzar.
-Se cruzan dos individuos al azar hasta llegar al tamaño de la población inicial.
-Si se generan más individuos que los necesarios, se eliminan\footnote{Ver implementación en la clase \texttt{OnePointCrossover}.}.
-
-\paragraph{Mutación} Simple, de probabilidad constante. Se permite configurar el porcentaje de mutación\footnote{Ver implementación en la clase \texttt{IntegerMutation}.}.
 
 \paragraph{Función de aptitud}
 
@@ -170,6 +161,22 @@ Como deseamos minimizar las tres variables resultantes de la simulación y las v
 
 donde $c$, $p$ y $m$ son costo total, pasajeros parados y máxima cantidad de pasajeros esperando respectivamente.
 El factor de $10^5$ es para evitar errores de redondeo por usar números muy pequeños.
+
+% Operadores genéticos
+
+\paragraph{Población inicial} Generación aleatoria de cromosomas de tamaño fijo, teniendo en cuenta valores máximos para cada frecuencia.
+Por ejemplo:
+
+\lstinputlisting{../src/randomGene.scala}
+
+\paragraph{Selección} Proporcional a la aptitud (ruleta). Se aplica repetidamente el algoritmo hasta llegar a un porcentaje configurable de selección relativo al tamaño de la población inicial (ver implementación en la clase \texttt{RouletteSelection}).
+
+\paragraph{Cruzamiento} Simple.
+Como estamos utilizando cromosomas con únicamente tres valores, elegimos siempre el segundo elemento como punto de cruzamiento (\texttt{xop} por \textit{\foreignlanguage{english}{crossover point}}), lo que evita devolver individuos duplicados al cruzar.
+Se cruzan dos individuos al azar hasta llegar al tamaño de la población inicial.
+Si se generan más individuos que los necesarios, se eliminan (ver implementación en la clase \texttt{OnePointCrossover}).
+
+\paragraph{Mutación} Simple, de probabilidad constante. Se permite configurar el porcentaje de mutación\footnote{Ver implementación en la clase \texttt{IntegerMutation}.}.
 
 En nuestra implementación, los cromosomas son objetos de tipo \texttt{BusFrequency} que tienen un método \texttt{fitness} (aptitud).
 Este método ejecuta la simulación para cada turno, reúne los resultados en un objeto de tipo \texttt{SimulationResult} y calcula la aptitud utilizando la fórmula anterior.
@@ -218,7 +225,7 @@ En todos los casos se utilizó el frontend web\cite{frontend} para ejecutar las 
 \centering
 \subfigure[Evolución de aptitud media]{\includegraphics{../data/img/evolution-1}}
 \subfigure[Histograma de población final]{\includegraphics{../data/img/fitness-1}}
-\caption{Corrida 1}
+\caption{Resultados de la primera corrida}
 \end{figure}
 
 \newpage
@@ -244,7 +251,7 @@ En todos los casos se utilizó el frontend web\cite{frontend} para ejecutar las 
 \centering
 \subfigure[Evolución de aptitud media]{\includegraphics{../data/img/evolution-2}}
 \subfigure[Histograma de población final]{\includegraphics{../data/img/fitness-2}}
-\caption{Corrida 2}
+\caption{Resultados de la segunda corrida}
 \end{figure}
 
 
@@ -271,7 +278,7 @@ En todos los casos se utilizó el frontend web\cite{frontend} para ejecutar las 
 \centering
 \subfigure[Evolución de aptitud media]{\includegraphics{../data/img/evolution-3}}
 \subfigure[Histograma de población final]{\includegraphics{../data/img/fitness-3}}
-\caption{Corrida 3}
+\caption{Resultados de la tercera corrida}
 \end{figure}
 
 }
@@ -282,11 +289,11 @@ En todos los casos se utilizó el frontend web\cite{frontend} para ejecutar las 
 
 Podemos observar que las tres corridas obtuvieron resultados similares en cuanto al mejor individuo, sin embargo es interesante analizar los resultados enteros de cada corrida por separado.
 
-La corrida 1 utiliza una población grande pero con una cantidad baja de iteraciones.
+La primera corrida utiliza una población grande pero con una cantidad baja de iteraciones.
 Llegó a un resultado alto por azar, pero la aptitud media final es la más baja de todas las corridas.
 Esto se debe a que nuestro algoritmo requiere de más iteraciones para converger en un máximo.
 
-En cambio, la corrida 2 utiliza una población más pequeña con 20 veces más iteraciones. En este caso podemos observar claramente la convergencia de la aptitud media a un valor cercano a 230, no muy lejos del mejor individuo de toda la corrida.
+En cambio, la segunda corrida utiliza una población más pequeña con 20 veces más iteraciones. En este caso podemos observar claramente la convergencia de la aptitud media a un valor cercano a 230, no muy lejos del mejor individuo de toda la corrida.
 Sin embargo, viendo el histograma de la población, se ve que existen dos grupos claramente marcados de aptitudes.
 Analizando los datos completos pudimos observar que existen numerosos resultados duplicados en la población final, posiblemente debido a nuestra elección de método de cruzamiento.
 
@@ -326,8 +333,9 @@ A Ignacio Rodríguez Genta, por su inspiración.
 %rlopezdato@gmail.com
 %}
 
+\textup{
 \printbibliography[heading=subbibintoc]
-
+}
 \end{multicols}
 
 
