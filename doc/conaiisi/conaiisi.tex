@@ -86,7 +86,8 @@ algoritmos genéticos, transporte de pasajeros, optimización, resolución de pr
 \mainsection{Introducción}{%
 
 En el marco de la asignatura ``Inteligencia Artificial'' del quinto año de la carrera de Ingeniería en Sistemas de la UTN FRBA, se lleva a cabo la resolución de problemas mediante la aplicación de sistemas inteligentes.
-El problema que se busca resolver es el de optimizar las frecuencias con que deben partir colectivos urbanos para minimizar las siguientes tres variables, que se consideran con el mismo peso a la hora de comparar posibles soluciones:
+
+El problema que se busca resolver en este trabajo es el de optimizar las frecuencias con que deben partir colectivos urbanos en una ciudad. Para ello se deben minimizar las siguientes tres variables, que se consideran con el mismo peso (es decir, igual importancia) a la hora de comparar posibles soluciones:
 
 \begin{itemize}
 	\item Costo total
@@ -107,11 +108,11 @@ Finalmente, las conclusiones correspondientes y las futuras líneas de trabajo.
 \mainsection{Elementos del trabajo y metodología}{%
 
 El primer paso para implementar un algoritmo genético es definir un modelo que represente la realidad con un grado adecuado de fidelidad\cite{sistemasinteligentes}.
-En el modelo definido, existen tres turnos: mañana, tarde y noche.
+En el modelo correspondiente al problema a resolver, existen tres turnos: mañana, tarde y noche.
 En cada turno viajan distintas cantidades de pasajeros, que se modelan mediante la cantidad de pasajeros que llegan por hora a la parada.
-Para simplificar el modelo, tuvimos en cuenta varios supuestos:
+Para simplificar el modelo, se tuvieron en cuenta varios supuestos:
 \begin{itemize}
-\item Existe una única parada y un único destino; todos los pasajeros suben y descienden en las mismas paradas
+\item Existe una única parada y un único destino; todos los pasajeros sólo suben y descienden en dichas paradas
 \item Cada colectivo tarda exactamente el mismo tiempo en realizar el recorrido
 \item Todos los colectivos son idénticos en cuanto a capacidad, tanto para pasajeros sentados como parados
 \item El costo de cada viaje es fijo, y no se consideran los ingresos por los boletos de los pasajeros
@@ -130,18 +131,11 @@ A partir de estos supuestos, se definen las siguientes variables de contexto:
 \end{itemize}
 }
 
-Como oportunidad de aprendizaje, se optó por crear una biblioteca de algoritmos genéticos con los operadores\footnote{Un operador genético es una etapa dentro de un algoritmo genético. Los principales operadores son mutación, cruzamiento y selección.} utilizados en este trabajo que llamamos Genetics\cite{genetics}.
-Se eligió implementar todo el código en Scala por conocimientos previos, la expresividad del lenguaje y la funcionalidad disponible en la biblioteca standard.
-Scala también permite utilizar Scala.js\cite{scalajs} (compilador de Scala a JavaScript) para facilitar la distribución de un ejecutable mediante una página web estática en lugar de un paquete instalable.
-
 \paragraph{}
 Dado un turno, la cantidad de pasajeros a transportar por hora y las variables del contexto, resulta poco práctico, quizás imposible, encontrar una función\footnote{Ésta implementación particular es determinista por lo que podría considerarse una función, pero no existe una fórmula que permita calcular el resultado de una simulación sin realizar las iteraciones necesarias.} que devuelva los resultados deseados.
 Por este motivo, se eligió calcularlo mediante una simulación dinámica.
-
 La simulación se ejecuta para cada turno de manera independiente, recibiendo como entrada las variables de contexto y la frecuencia de pasajeros del turno actual.
 Devuelve como resultados las tres variables de interés: costo total, cantidad de pasajeros que viajan parados, y máxima cantidad de pasajeros esperando a la vez.
-
-El código de la simulación está en el método \texttt{simulateShift} del tipo \texttt{BusContext}, que define también las variables de contexto.
 
 \paragraph{}
 A continuación se describe cada componente del algoritmo implementado en detalle.
@@ -175,10 +169,17 @@ Como se están utilizando cromosomas con únicamente tres valores, se elige siem
 Se cruzan dos individuos al azar hasta llegar al tamaño de la población inicial.
 Si se generan más individuos que los necesarios, se eliminan (ver implementación en la clase \texttt{OnePointCrossover}).
 
-\paragraph{Mutación} Simple, de probabilidad constante. Se permite configurar el porcentaje de mutación\footnote{Ver implementación en la clase \texttt{IntegerMutation}.}.
+\paragraph{Mutación} Simple, de probabilidad constante. Se permite configurar el porcentaje de mutación (ver implementación en la clase \texttt{IntegerMutation}).
 
 En ésta implementación, los cromosomas son objetos de tipo \texttt{BusFrequency} que tienen un método \texttt{fitness} (aptitud).
 Éste método ejecuta la simulación para cada turno, reúne los resultados en un objeto de tipo \texttt{SimulationResult} y calcula la aptitud utilizando la fórmula anterior.
+
+Como oportunidad de aprendizaje, se optó por crear una biblioteca de algoritmos genéticos con los operadores\footnote{Un operador genético es una etapa dentro de un algoritmo genético. Los principales operadores son mutación, cruzamiento y selección.} utilizados en este trabajo que llamamos Genetics\cite{genetics}.
+Se eligió implementar todo el código en Scala por conocimientos previos, la expresividad del lenguaje y la funcionalidad disponible en la biblioteca standard.
+Scala también permite utilizar Scala.js\cite{scalajs} (compilador de Scala a JavaScript) para facilitar la distribución de un ejecutable mediante una página web estática en lugar de un paquete instalable.
+
+El código de la simulación está en el método \texttt{simulateShift} del tipo \texttt{BusContext}, que define también las variables de contexto.
+
 
 \mainsection{Resultados}{%
 En todos los casos, los parámetros de simulación utilizados fueron los siguientes:
@@ -200,9 +201,11 @@ La selección de estos parámetros para un caso real de optimización de recorri
 En todos los casos se utilizó el frontend web\cite{frontend} para ejecutar las corridas, que emite todos los resultados necesarios para confeccionar los gráficos presentados.
 
 \end{multicols}
-\newgeometry{left=2cm,right=2cm,top=1.5cm,bottom=1.5cm}
+\newgeometry{left=2cm,right=2cm,top=1.4cm,bottom=1.4cm}
 \newpage
 
+
+\subsection*{Resultados de la corrida 1}
 \subsubsection*{Parámetros aplicados}
 
 \begin{multicols}{2}
@@ -229,6 +232,7 @@ En todos los casos se utilizó el frontend web\cite{frontend} para ejecutar las 
 
 \newpage
 
+\subsection*{Resultados de la corrida 2}
 \subsubsection*{Parámetros aplicados}
 
 \begin{multicols}{2}
@@ -256,6 +260,7 @@ En todos los casos se utilizó el frontend web\cite{frontend} para ejecutar las 
 
 \newpage
 
+\subsection*{Resultados de la corrida 3}
 \subsubsection*{Parámetros aplicados}
 
 \begin{multicols}{2}
@@ -286,7 +291,7 @@ En todos los casos se utilizó el frontend web\cite{frontend} para ejecutar las 
 \begin{multicols}{2}
 \mainsection{Discusión}{%
 
-Se observa que las tres corridas obtuvieron resultados similares en cuanto al mejor individuo, sin embargo es interesante analizar los resultados enteros de cada corrida por separado.
+A partir de los resultados obtenidos en la sección anterior, se observa que las tres corridas obtuvieron resultados similares en cuanto al mejor individuo, sin embargo es interesante analizar los resultados enteros de cada corrida por separado.
 
 La primera corrida utiliza una población grande pero con una cantidad baja de iteraciones.
 Llegó a un resultado alto por azar, pero la aptitud media final es la más baja de todas las corridas.
@@ -308,10 +313,9 @@ Por ejemplo, se observan muchos resultados con aptitud maximal donde hay element
 
 \mainsection{Conclusión}{%
 
-Se pudo observar que los algoritmos genéticos son una herramienta eficaz para resolver problemas que no se pueden resolver mediante algoritmos tradicionales.
-Genetics no acopla los operadores genéticos al dominio del problema, por lo que es lo suficientemente flexible para soportar distintos operadores que no fueron evaluados.
+A partir del trabajo práctico realizado, se pudo observar que los algoritmos genéticos son una herramienta eficaz para resolver problemas que no se pueden resolver mediante algoritmos tradicionales.
+Las clases implementadas en Genetics no acoplan los operadores genéticos al dominio del problema, por lo que son lo suficientemente flexible para soportar distintos operadores que no fueron evaluados.
 Otros operadores podrían permitir generar mejores soluciones o reducir los tiempos de procesamiento.
-
 Un punto importante de mejora a futuro sería optimizar Genetics para poder hacer corridas en tiempos razonables con cientos de miles de individuos e iteraciones, quizás mediante paralelismo o un sistemas distribuidos.
 
 Habiendo implementado todos los operadores, se pudo observar la complejidad que implica diseñar cada uno y la cantidad de decisiones que deben tomarse para llegar a un resultado satisfactorio.
@@ -321,10 +325,10 @@ Al ser software libre, se invita a cualquier interesado a estudiar su implementa
 
 }
 
-\smallsection{Agradecimientos}{%
-A los profesores y ayudantes de Inteligencia Artificial (UTN FRBA), por sugerir este tema de investigación y por el apoyo para publicarlo.
-A Ignacio Rodríguez Genta, por su inspiración.
-}
+%\smallsection{Agradecimientos}{%
+%A los profesores y ayudantes de Inteligencia Artificial (UTN FRBA), por sugerir este tema de investigación y por el apoyo para publicarlo.
+%A Ignacio Rodríguez Genta, por su inspiración.
+%}
 
 %\smallsection{Datos de contacto}{%
 %Rodrigo López Dato\\
@@ -332,9 +336,11 @@ A Ignacio Rodríguez Genta, por su inspiración.
 %rlopezdato@gmail.com
 %}
 
+\begin{normalsize}
 \textup{
 \printbibliography[heading=subbibintoc]
 }
+\end{normalsize}
 \end{multicols}
 
 

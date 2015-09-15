@@ -10,13 +10,13 @@
 \RequirePackage{titlesec}
 \RequirePackage[utf8]{inputenc}
 \RequirePackage[T1]{fontenc}
+\RequirePackage[hang,flushmargin]{footmisc}
 \RequirePackage[
 	backend=bibtex,
 	bibencoding=ascii,
 	style=numeric,
 	sorting=none
 ]{biblatex}
-\renewcommand*{\bibfont}{\fontsize{10pt}{12pt}}
 
 \date{}
 \pagenumbering{gobble}
